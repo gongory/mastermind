@@ -23,7 +23,7 @@
   <!-- Babel -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Firebase Import Map (Añadido storage) -->
+  <!-- Firebase Import Map -->
   <script type="importmap">
     {
       "imports": {
@@ -45,7 +45,7 @@
     import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from "firebase/firestore";
     import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect, useMemo, useRef } = React;
 
     // Tus claves reales de Firebase
     const firebaseConfig = {
@@ -63,7 +63,20 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app); // Inicializamos Storage
+    const storage = getStorage(app);
+
+    // --- ESCUDO PROTECTOR PARA LOS ICONOS (Evita que React se rompa) ---
+    const Icon = ({ name, className }) => {
+      const spanRef = useRef(null);
+      useEffect(() => {
+        if (spanRef.current) {
+          spanRef.current.innerHTML = `<i data-lucide="${name}" class="${className || ''}"></i>`;
+          lucide.createIcons({ root: spanRef.current });
+        }
+      }, [name, className]);
+      // Usamos display: contents para que el span sea invisible al diseño flex
+      return <span ref={spanRef} style={{ display: 'contents' }}></span>;
+    };
 
     // --- COMPONENTE MODAL DE MANUAL DE LA APP ---
     const SystemManualModal = ({ isOpen, onClose }) => {
@@ -75,17 +88,16 @@
             <div className="p-6 border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center rounded-t-2xl">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 rounded-lg">
-                  <i data-lucide="info" className="w-6 h-6"></i>
+                  <Icon name="info" className="w-6 h-6" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-800 dark:text-white">Guía de la Aplicación</h2>
               </div>
               <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition">
-                <i data-lucide="x" className="w-5 h-5"></i>
+                <Icon name="x" className="w-5 h-5" />
               </button>
             </div>
             
             <div className="p-6 overflow-y-auto space-y-8 bg-white dark:bg-slate-800">
-              
               <section>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-3 border-b dark:border-slate-700 pb-2">¿Cómo funciona?</h3>
                 <p className="text-slate-600 dark:text-slate-300 text-sm mb-4 leading-relaxed">
@@ -93,15 +105,15 @@
                 </p>
                 <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
                   <li className="flex items-start gap-2">
-                    <i data-lucide="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5"></i>
+                    <Icon name="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                     <span><strong>Crear:</strong> Pulsa "Nuevo Manual", añade título, categoría, una imagen (opcional) y los pasos.</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <i data-lucide="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5"></i>
+                    <Icon name="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                     <span><strong>Buscar:</strong> Usa la barra superior. Buscará en el título y dentro de los pasos.</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <i data-lucide="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5"></i>
+                    <Icon name="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                     <span><strong>Exportar:</strong> Abre cualquier manual y usa los iconos superiores para guardarlo en PDF o compartirlo.</span>
                   </li>
                 </ul>
@@ -149,30 +161,15 @@
 
                   <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">Versión 1.01</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">17 Julio 2026</span>
-                    </div>
-                    <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1">
-                      <li>Añadido modo oscuro con guardado de preferencias.</li>
-                      <li>Creación de este registro de actualizaciones (changelog).</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-slate-700 dark:text-slate-300">Versión 1.00</span>
                       <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">17 Julio 2026</span>
                     </div>
                     <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1">
-                      <li>Lanzamiento inicial.</li>
-                      <li>Conexión a base de datos segura en Firebase.</li>
-                      <li>Categorías personalizadas y buscador avanzado.</li>
+                      <li>Lanzamiento inicial y conexión a Firebase.</li>
                     </ul>
                   </div>
-
                 </div>
               </section>
-
             </div>
             
             <div className="p-4 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-end rounded-b-2xl">
@@ -190,8 +187,8 @@
       const [title, setTitle] = useState('');
       const [category, setCategory] = useState('');
       const [steps, setSteps] = useState(['']);
-      const [imageFile, setImageFile] = useState(null); // Nuevo estado para la imagen
-      const [isSaving, setIsSaving] = useState(false); // Estado de carga
+      const [imageFile, setImageFile] = useState(null);
+      const [isSaving, setIsSaving] = useState(false);
 
       useEffect(() => {
         if (isOpen) {
@@ -200,7 +197,6 @@
           setSteps(['']);
           setImageFile(null);
           setIsSaving(false);
-          setTimeout(() => lucide.createIcons(), 0);
         }
       }, [isOpen]);
 
@@ -222,13 +218,19 @@
         e.preventDefault();
         if (title.trim() && category.trim() && steps[0].trim()) {
           setIsSaving(true);
-          await onSave({
-            title: title.trim(),
-            category: category.trim(),
-            steps: steps.filter(s => s.trim() !== ''),
-            imageFile: imageFile
-          });
-          setIsSaving(false);
+          try {
+            await onSave({
+              title: title.trim(),
+              category: category.trim(),
+              steps: steps.filter(s => s.trim() !== ''),
+              imageFile: imageFile
+            });
+          } catch (error) {
+            console.error("Error al guardar:", error);
+            alert("No se pudo guardar: " + error.message);
+          } finally {
+            setIsSaving(false);
+          }
         }
       };
 
@@ -238,7 +240,7 @@
             
             {isSaving && (
               <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl">
-                <i data-lucide="loader-2" className="w-10 h-10 text-indigo-600 animate-spin mb-4"></i>
+                <Icon name="loader-2" className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
                 <p className="font-medium text-slate-700 dark:text-slate-200">Guardando manual...</p>
               </div>
             )}
@@ -246,7 +248,7 @@
             <div className="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80 rounded-t-2xl">
               <h2 className="text-xl font-bold text-slate-800 dark:text-white">Crear nuevo manual</h2>
               <button onClick={onClose} disabled={isSaving} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition disabled:opacity-50">
-                <i data-lucide="x" className="w-5 h-5"></i>
+                <Icon name="x" className="w-5 h-5" />
               </button>
             </div>
             
@@ -265,10 +267,9 @@
                 </div>
               </div>
 
-              {/* Selector de Imagen */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                  <i data-lucide="image" className="w-4 h-4"></i> Imagen adjunta (Opcional)
+                  <Icon name="image" className="w-4 h-4" /> Imagen adjunta (Opcional)
                 </label>
                 <div className="flex items-center gap-4">
                   <input 
@@ -289,12 +290,12 @@
                     </div>
                     <textarea value={step} onChange={e => handleStepChange(index, e.target.value)} placeholder={`Paso ${index + 1}...`} className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none min-h-[60px] resize-y dark:text-white transition" required={index === 0} />
                     <button type="button" onClick={() => handleRemoveStep(index)} disabled={steps.length === 1} className="p-3 text-red-400 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition disabled:opacity-30 mt-1">
-                      <i data-lucide="trash-2" className="w-5 h-5"></i>
+                      <Icon name="trash-2" className="w-5 h-5" />
                     </button>
                   </div>
                 ))}
                 <button type="button" onClick={handleAddStep} className="flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 p-2 rounded-lg transition mt-2">
-                  <i data-lucide="plus" className="w-4 h-4"></i> Añadir otro paso
+                  <Icon name="plus" className="w-4 h-4" /> Añadir otro paso
                 </button>
               </div>
             </form>
@@ -323,7 +324,6 @@
           setColor(currentSettings?.color || 'indigo');
           setSortBy(currentSettings?.sortBy || 'date_desc');
           setDeleteMode(null);
-          setTimeout(() => lucide.createIcons(), 0);
         }
       }, [isOpen, categoryName, currentSettings]);
 
@@ -344,7 +344,7 @@
             <div className="p-6 border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800 dark:text-white">Editar Categoría</h2>
               <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition">
-                <i data-lucide="x" className="w-5 h-5"></i>
+                <Icon name="x" className="w-5 h-5" />
               </button>
             </div>
             
@@ -377,10 +377,10 @@
                 {!deleteMode ? (
                   <>
                     <button onClick={() => setDeleteMode('category')} className="w-full p-3 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 rounded-lg font-medium transition flex justify-center items-center gap-2">
-                      <i data-lucide="folder-minus" className="w-5 h-5"></i> Borrar solo la categoría
+                      <Icon name="folder-minus" className="w-5 h-5" /> Borrar solo la categoría
                     </button>
                     <button onClick={() => setDeleteMode('manuals')} className="w-full p-3 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg font-medium transition flex justify-center items-center gap-2">
-                      <i data-lucide="trash-2" className="w-5 h-5"></i> Borrar manuales de esta categoría
+                      <Icon name="trash-2" className="w-5 h-5" /> Borrar manuales de esta categoría
                     </button>
                   </>
                 ) : deleteMode === 'category' ? (
@@ -388,7 +388,7 @@
                     <p className="text-sm text-orange-700 dark:text-orange-300 font-medium text-center">¿Borrar la categoría "{categoryName}"? Los manuales que contenga se moverán a "General".</p>
                     <div className="flex gap-2">
                       <button onClick={() => setDeleteMode(null)} className="flex-1 p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg font-medium border border-slate-200 dark:border-slate-700">Cancelar</button>
-                      <button onClick={() => onDelete(categoryName, 'category')} className="flex-1 p-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">Sí, borrar categoría</button>
+                      <button onClick={() => onDelete(categoryName, 'category')} className="flex-1 p-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition">Sí, borrar</button>
                     </div>
                   </div>
                 ) : (
@@ -396,7 +396,7 @@
                     <p className="text-sm text-red-700 dark:text-red-300 font-medium text-center">¿Seguro? Se borrarán TODOS los manuales de esta categoría (acción irreversible).</p>
                     <div className="flex gap-2">
                       <button onClick={() => setDeleteMode(null)} className="flex-1 p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg font-medium border border-slate-200 dark:border-slate-700">Cancelar</button>
-                      <button onClick={() => onDelete(categoryName, 'manuals')} className="flex-1 p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">Sí, borrar manuales</button>
+                      <button onClick={() => onDelete(categoryName, 'manuals')} className="flex-1 p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">Sí, borrar</button>
                     </div>
                   </div>
                 )}
@@ -449,10 +449,6 @@
           localStorage.setItem('theme', 'light');
         }
       }, [isDarkMode]);
-
-      useEffect(() => {
-        lucide.createIcons();
-      });
 
       useEffect(() => {
         const authenticate = async () => {
@@ -541,7 +537,6 @@
         if (!user) return;
         
         let finalName = oldName;
-        // Si renombra, actualizamos todos los manuales asociados
         if (newName.trim() && newName.trim() !== oldName) {
           finalName = newName.trim();
           const itemsToUpdate = items.filter(item => item.category === oldName);
@@ -579,13 +574,12 @@
           }
           if (mode === 'manuals') {
             setIsEditCategoryModalOpen(false);
-            return; // Termina la función aquí para no borrar la categoría
+            return;
           }
         }
 
         if (mode === 'category' || mode === 'both') {
           if (mode === 'category') {
-            // Mover manuales a 'General'
             const itemsToMove = items.filter(item => item.category === catToDelete);
             for (const item of itemsToMove) {
               await updateDoc(doc(db, 'artifacts', APP_ID, 'users', user.uid, 'manuals', item.id), { category: 'General' });
@@ -612,40 +606,42 @@
         
         let imageUrl = null;
         
-        // Si hay imagen, subirla primero a Storage
-        if (newItemData.imageFile) {
-          try {
+        try {
+          if (newItemData.imageFile) {
             const imgRef = storageRef(storage, `usuarios/${user.uid}/manuales/${newId}/${newItemData.imageFile.name}`);
             await uploadBytesResumable(imgRef, newItemData.imageFile);
             imageUrl = await getDownloadURL(imgRef);
-          } catch (err) {
-            console.error("Error subiendo imagen. ¿Activaste Storage en Firebase?", err);
-            alert("Error subiendo imagen. Asegúrate de habilitar Firebase Storage en tu consola.");
           }
-        }
 
-        const newItem = {
-          title: newItemData.title,
-          category: newItemData.category,
-          steps: newItemData.steps,
-          imageUrl: imageUrl, // Guardamos la URL
-          id: newId,
-          lastUpdated: new Date().toISOString().split('T')[0]
-        };
-        
-        const manualDocRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'manuals', newId);
-        await setDoc(manualDocRef, newItem);
-        setIsAddModalOpen(false);
+          const newItem = {
+            title: newItemData.title,
+            category: newItemData.category,
+            steps: newItemData.steps,
+            imageUrl: imageUrl, 
+            id: newId,
+            lastUpdated: new Date().toISOString().split('T')[0]
+          };
+          
+          const manualDocRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'manuals', newId);
+          await setDoc(manualDocRef, newItem);
+          setIsAddModalOpen(false);
+        } catch (err) {
+          console.error("Error guardando el manual:", err);
+          alert("Hubo un problema al guardar. Si añadiste una foto, asegúrate de haber activado 'Storage' en Firebase. Detalle: " + err.message);
+        }
       };
 
       const handleDeleteItem = async (id) => {
         if (!user) return;
         setSelectedItem(null);
-        const manualDocRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'manuals', id);
-        await deleteDoc(manualDocRef);
+        try {
+          const manualDocRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'manuals', id);
+          await deleteDoc(manualDocRef);
+        } catch (err) {
+          console.error("Error borrando el manual:", err);
+        }
       };
 
-      // Función para compartir
       const handleShare = async () => {
         if (!selectedItem) return;
         if (navigator.share) {
@@ -653,7 +649,7 @@
             await navigator.share({
               title: selectedItem.title,
               text: `Mira este manual que he guardado: ${selectedItem.title} (${selectedItem.category})`,
-              url: window.location.href, // Compartirá la URL actual donde esté alojada la app
+              url: window.location.href, 
             });
           } catch (err) {
             console.log('Compartir cancelado o error:', err);
@@ -665,13 +661,12 @@
 
       return (
         <div className="min-h-screen">
-          {/* Ocultamos el header al imprimir en PDF */}
           <header className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 sticky top-0 z-30 shadow-sm transition-colors duration-200 print:hidden">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shrink-0">
-                    <i data-lucide="book-open" className="text-white w-6 h-6"></i>
+                    <Icon name="book-open" className="text-white w-6 h-6" />
                   </div>
                   <div>
                     <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-indigo-500 dark:from-indigo-400 dark:to-indigo-300">Mastermind</h1>
@@ -682,7 +677,7 @@
                 <div className="w-full sm:w-auto flex gap-3">
                   <div className="relative w-full sm:w-72">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <i data-lucide="search" className="h-4 w-4 text-slate-400 dark:text-slate-500"></i>
+                      <Icon name="search" className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     </div>
                     <input 
                       type="text" 
@@ -694,15 +689,15 @@
                   </div>
                   
                   <button onClick={() => setIsSystemManualOpen(true)} className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition flex-shrink-0">
-                    <i data-lucide="help-circle" className="w-5 h-5"></i>
+                    <Icon name="help-circle" className="w-5 h-5" />
                   </button>
 
                   <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition flex-shrink-0">
-                    {isDarkMode ? <i data-lucide="sun" className="w-5 h-5"></i> : <i data-lucide="moon" className="w-5 h-5"></i>}
+                    {isDarkMode ? <Icon name="sun" className="w-5 h-5" /> : <Icon name="moon" className="w-5 h-5" />}
                   </button>
 
                   <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shrink-0">
-                    <i data-lucide="plus" className="w-4 h-4"></i> <span className="hidden sm:inline">Nuevo Manual</span>
+                    <Icon name="plus" className="w-4 h-4" /> <span className="hidden sm:inline">Nuevo Manual</span>
                   </button>
                 </div>
               </div>
@@ -738,7 +733,7 @@
                           className="p-1 -mr-2 ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                           title="Editar categoría"
                         >
-                          <i data-lucide="settings" className="w-3 h-3"></i>
+                          <Icon name="settings" className="w-3 h-3" />
                         </div>
                       )}
                     </button>
@@ -757,29 +752,28 @@
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveNewCategory()}
                     />
                     <button onClick={handleSaveNewCategory} className="p-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 rounded-full">
-                      <i data-lucide="check" className="w-3 h-3"></i>
+                      <Icon name="check" className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
                   <button onClick={() => setIsAddingCategory(true)} className="px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 shrink-0 flex items-center gap-1">
-                    <i data-lucide="plus" className="w-3 h-3"></i> Añadir
+                    <Icon name="plus" className="w-3 h-3" /> Añadir
                   </button>
                 )}
               </div>
             
               {dbError && (
                 <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg text-sm flex items-center gap-2">
-                  <i data-lucide="alert-circle" className="w-5 h-5 shrink-0"></i> <p className="font-medium">{dbError}</p>
+                  <Icon name="alert-circle" className="w-5 h-5 shrink-0" /> <p className="font-medium">{dbError}</p>
                 </div>
               )}
             </div>
           </header>
 
-          {/* Ocultamos el listado principal al imprimir */}
           <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:hidden">
             {filteredItems.length === 0 ? (
               <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600">
-                <i data-lucide="book-dashed" className="mx-auto h-12 w-12 text-slate-300 mb-4"></i>
+                <Icon name="book-dashed" className="mx-auto h-12 w-12 text-slate-300 mb-4" />
                 <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">No hay manuales</h3>
                 <p className="text-slate-500 mt-1">Añade tu primer manual para empezar.</p>
               </div>
@@ -789,16 +783,14 @@
                   <div key={item.id} onClick={() => setSelectedItem(item)} className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition-all cursor-pointer group flex flex-col h-full relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     
-                    {/* Botón de borrado rápido en la tarjeta */}
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.id); }}
                       className="absolute top-3 right-3 p-2 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-200 dark:hover:bg-red-900"
                       title="Borrar manual"
                     >
-                      <i data-lucide="trash-2" className="w-4 h-4"></i>
+                      <Icon name="trash-2" className="w-4 h-4" />
                     </button>
 
-                    {/* Miniatura de imagen si existe */}
                     {item.imageUrl && (
                       <div className="w-full h-32 mb-4 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700">
                         <img src={item.imageUrl} alt="Miniatura" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
@@ -808,7 +800,7 @@
                     <div className="flex justify-between items-start mb-4">
                       <span className="inline-block px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-lg uppercase">{item.category}</span>
                       <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                        <i data-lucide="calendar" className="w-3 h-3"></i> {item.lastUpdated}
+                        <Icon name="calendar" className="w-3 h-3" /> {item.lastUpdated}
                       </span>
                     </div>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-3 group-hover:text-indigo-700 transition-colors">{item.title}</h3>
@@ -821,7 +813,6 @@
             )}
           </main>
 
-          {/* Modal de Detalle - ADAPTADO PARA IMPRESIÓN/PDF */}
           {selectedItem && (
             <div className="fixed inset-0 bg-slate-900/50 dark:bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:static print:bg-transparent print:p-0 print:block">
               <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl transition-colors duration-200 print:shadow-none print:max-w-none print:border-none print:overflow-visible print:max-h-none print:bg-white print:text-black">
@@ -833,31 +824,28 @@
                     </span>
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-white print:text-black leading-tight pr-4">{selectedItem.title}</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 print:text-slate-600 mt-2 font-medium flex items-center gap-1">
-                      <i data-lucide="clock" className="w-4 h-4"></i> Última actualización: {selectedItem.lastUpdated}
+                      <Icon name="clock" className="w-4 h-4" /> Última actualización: {selectedItem.lastUpdated}
                     </p>
                   </div>
                   
-                  {/* Botones de acción - Ocultos al imprimir */}
                   <div className="flex gap-1 flex-shrink-0 print:hidden">
                     <button onClick={handleShare} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full transition" title="Compartir">
-                      <i data-lucide="share-2" className="w-5 h-5"></i>
+                      <Icon name="share-2" className="w-5 h-5" />
                     </button>
                     <button onClick={() => window.print()} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full transition" title="Descargar PDF">
-                      <i data-lucide="download" className="w-5 h-5"></i>
+                      <Icon name="download" className="w-5 h-5" />
                     </button>
                     <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 my-auto mx-1"></div>
                     <button onClick={() => handleDeleteItem(selectedItem.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition" title="Borrar">
-                      <i data-lucide="trash-2" className="w-5 h-5"></i>
+                      <Icon name="trash-2" className="w-5 h-5" />
                     </button>
                     <button onClick={() => setSelectedItem(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 rounded-full transition ml-1">
-                      <i data-lucide="x" className="w-5 h-5"></i>
+                      <Icon name="x" className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
                 
                 <div className="p-6 overflow-y-auto bg-white dark:bg-slate-800 print:overflow-visible print:bg-white">
-                  
-                  {/* Imagen adjunta en el detalle */}
                   {selectedItem.imageUrl && (
                     <div className="mb-8 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 print:border-slate-300">
                       <img src={selectedItem.imageUrl} alt="Imagen adjunta" className="w-full h-auto object-contain max-h-[400px] bg-slate-50 dark:bg-slate-900 print:bg-white" />
@@ -878,7 +866,6 @@
                   </div>
                 </div>
                 
-                {/* Footer oculto al imprimir */}
                 <div className="p-6 border-t dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex justify-end rounded-b-2xl print:hidden">
                   <button onClick={() => setSelectedItem(null)} className="px-6 py-2.5 bg-slate-800 dark:bg-indigo-600 hover:bg-slate-900 text-white font-medium rounded-xl transition">
                     Cerrar
