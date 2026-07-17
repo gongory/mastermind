@@ -114,10 +114,20 @@
                   <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-indigo-800 dark:text-indigo-300">Versión 1.02</span>
+                      <span className="font-bold text-indigo-800 dark:text-indigo-300">Versión 1.03</span>
                       <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-100 dark:bg-indigo-900/50 px-2 py-1 rounded-md">17 Julio 2026</span>
                     </div>
                     <ul className="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                      <li><strong>Borrar Categorías:</strong> Ahora puedes eliminar las categorías vacías (que no tengan manuales) pulsando la "X" al seleccionarlas en la pantalla principal.</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">Versión 1.02</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">17 Julio 2026</span>
+                    </div>
+                    <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1">
                       <li><strong>Imágenes:</strong> Posibilidad de adjuntar una foto o captura al crear un manual.</li>
                       <li><strong>Descarga en PDF:</strong> Botón para imprimir/guardar el manual limpio en PDF.</li>
                       <li><strong>Compartir:</strong> Botón para enviar el manual rápidamente (WhatsApp, Email, etc.).</li>
@@ -395,6 +405,16 @@
         setNewCategoryName('');
       };
 
+      const handleDeleteCategory = async (catToDelete) => {
+        if (!user) return;
+        const newCustom = customCategories.filter(c => c !== catToDelete);
+        setCustomCategories(newCustom);
+        setActiveCategory('Todas');
+        
+        const categoryDocRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'settings', 'categories');
+        await setDoc(categoryDocRef, { custom: newCustom });
+      };
+
       const handleAddItem = async (newItemData) => {
         if (!user) return;
         const newId = Math.random().toString(36).substr(2, 9);
@@ -497,19 +517,33 @@
               </div>
 
               <div className="mt-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {categories.map(cat => (
-                  <button 
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0 ${
-                      activeCategory === cat 
-                        ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 ring-1 ring-indigo-200 dark:ring-indigo-700' 
-                        : 'bg-white text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+                {categories.map(cat => {
+                  const inUse = items.some(item => item.category === cat);
+                  const isDeletable = !inUse && cat !== 'Todas';
+                  
+                  return (
+                    <button 
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all shrink-0 flex items-center gap-1 ${
+                        activeCategory === cat 
+                          ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 ring-1 ring-indigo-200 dark:ring-indigo-700' 
+                          : 'bg-white text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                      }`}
+                    >
+                      {cat}
+                      {activeCategory === cat && isDeletable && (
+                        <div 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat); }}
+                          className="p-1 -mr-2 ml-1 rounded-full hover:bg-indigo-200 dark:hover:bg-indigo-800 text-indigo-500 dark:text-indigo-400 transition-colors"
+                          title="Borrar categoría vacía"
+                        >
+                          <i data-lucide="x" className="w-3 h-3"></i>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
                 
                 {isAddingCategory ? (
                   <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-full pl-3 pr-1 py-1 shrink-0">
