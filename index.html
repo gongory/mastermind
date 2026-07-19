@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mastermind</title>
+  <title>Master-mind2</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -158,6 +158,10 @@
                   </li>
                   <li className="flex items-start gap-2">
                     <Icon name="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                    <span><strong>Editar:</strong> Abre cualquier manual y pulsa el icono del lápiz en la parte superior para modificarlo.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Icon name="check-circle-2" className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                     <span><strong>Exportar:</strong> Abre cualquier manual y usa los iconos superiores para guardarlo en PDF o compartirlo.</span>
                   </li>
                 </ul>
@@ -226,8 +230,8 @@
       );
     };
 
-    // --- COMPONENTE MODAL (Formulario para añadir) ---
-    const AddManualModal = ({ isOpen, onClose, onSave, categories }) => {
+    // --- COMPONENTE MODAL (Formulario para añadir o editar) ---
+    const AddManualModal = ({ isOpen, onClose, onSave, categories, initialData }) => {
       const [title, setTitle] = useState('');
       const [category, setCategory] = useState('');
       const [steps, setSteps] = useState(['']);
@@ -236,13 +240,13 @@
 
       useEffect(() => {
         if (isOpen) {
-          setTitle('');
-          setCategory('');
-          setSteps(['']);
+          setTitle(initialData?.title || '');
+          setCategory(initialData?.category || '');
+          setSteps(initialData?.steps || ['']);
           setImageFile(null);
           setIsSaving(false);
         }
-      }, [isOpen]);
+      }, [isOpen, initialData]);
 
       if (!isOpen) return null;
 
@@ -267,7 +271,9 @@
               title: title.trim(),
               category: category.trim(),
               steps: steps.filter(s => s.trim() !== ''),
-              imageFile: imageFile
+              imageFile: imageFile,
+              id: initialData?.id,
+              existingImageUrl: initialData?.imageUrl
             });
           } catch (error) {
             console.error("Error al guardar:", error);
@@ -290,7 +296,7 @@
             )}
 
             <div className="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80 rounded-t-2xl">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Crear nuevo manual</h2>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white">{initialData ? 'Editar manual' : 'Crear nuevo manual'}</h2>
               <button onClick={onClose} disabled={isSaving} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition disabled:opacity-50">
                 <Icon name="x" className="w-5 h-5" />
               </button>
@@ -471,6 +477,7 @@
       const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
       const [categoryToEdit, setCategoryToEdit] = useState('');
       const [selectedItem, setSelectedItem] = useState(null);
+      const [itemToEdit, setItemToEdit] = useState(null);
       const [isSystemManualOpen, setIsSystemManualOpen] = useState(false);
       const [dbError, setDbError] = useState(null);
 
@@ -606,7 +613,7 @@
               <div className="w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-6">
                 <Icon name="book-open" className="text-white w-8 h-8" />
               </div>
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Mastermind</h1>
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Master-mind2</h1>
               <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm">Tu segundo cerebro. Guarda tus procesos para no olvidarlos jamás.</p>
               
               <button 
@@ -711,9 +718,10 @@
 
       const handleAddItem = async (newItemData) => {
         if (!user) return;
-        const newId = Math.random().toString(36).substr(2, 9);
+        const isEditing = !!newItemData.id;
+        const newId = isEditing ? newItemData.id : Math.random().toString(36).substr(2, 9);
         
-        let imageUrl = null;
+        let imageUrl = isEditing ? newItemData.existingImageUrl : null;
         
         try {
           if (newItemData.imageFile) {
@@ -734,6 +742,10 @@
           const manualDocRef = doc(db, 'artifacts', APP_ID, 'users', user.uid, 'manuals', newId);
           await setDoc(manualDocRef, newItem);
           setIsAddModalOpen(false);
+          if (isEditing) {
+             setSelectedItem(newItem);
+             setItemToEdit(null);
+          }
         } catch (err) {
           console.error("Error guardando el manual:", err);
           alert("Hubo un problema al guardar. Si añadiste una foto, asegúrate de haber activado 'Storage' en Firebase. Detalle: " + err.message);
@@ -778,7 +790,7 @@
                     <Icon name="book-open" className="text-white w-6 h-6" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-indigo-500 dark:from-indigo-400 dark:to-indigo-300">Mastermind</h1>
+                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-indigo-500 dark:from-indigo-400 dark:to-indigo-300">Master-mind2</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">Tu segundo cerebro</p>
                   </div>
                 </div>
@@ -805,7 +817,7 @@
                     {isDarkMode ? <Icon name="sun" className="w-5 h-5" /> : <Icon name="moon" className="w-5 h-5" />}
                   </button>
 
-                  <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shrink-0 mr-2">
+                  <button onClick={() => { setItemToEdit(null); setIsAddModalOpen(true); }} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shrink-0 mr-2">
                     <Icon name="plus" className="w-4 h-4" /> <span className="hidden sm:inline">Nuevo Manual</span>
                   </button>
 
@@ -947,6 +959,9 @@
                   </div>
                   
                   <div className="flex gap-1 flex-shrink-0 print:hidden">
+                    <button onClick={() => { setItemToEdit(selectedItem); setIsAddModalOpen(true); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full transition" title="Editar">
+                      <Icon name="edit-2" className="w-5 h-5" />
+                    </button>
                     <button onClick={handleShare} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-full transition" title="Compartir">
                       <Icon name="share-2" className="w-5 h-5" />
                     </button>
@@ -993,7 +1008,7 @@
             </div>
           )}
           
-          <AddManualModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSave={handleAddItem} categories={categories} />
+          <AddManualModal isOpen={isAddModalOpen} onClose={() => { setIsAddModalOpen(false); setItemToEdit(null); }} onSave={handleAddItem} categories={categories} initialData={itemToEdit} />
           <EditCategoryModal 
             isOpen={isEditCategoryModalOpen} 
             onClose={() => setIsEditCategoryModalOpen(false)} 
