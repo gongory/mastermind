@@ -522,45 +522,6 @@
         }
       };
 
-      if (isAuthLoading) {
-        return (
-          <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-            <Icon name="loader-2" className="w-10 h-10 text-indigo-600 animate-spin" />
-          </div>
-        );
-      }
-
-      if (!user) {
-        return (
-          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center border border-slate-200 dark:border-slate-700">
-              <div className="w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-6">
-                <Icon name="book-open" className="text-white w-8 h-8" />
-              </div>
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Mastermind</h1>
-              <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm">Tu segundo cerebro. Guarda tus procesos para no olvidarlos jamás.</p>
-              
-              <button 
-                onClick={handleGoogleSignIn}
-                className="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-semibold py-3 px-4 rounded-xl transition shadow-sm"
-              >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                Entrar con Google
-              </button>
-              
-              {dbError && (
-                <p className="mt-4 text-sm text-red-500 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-800 text-left">
-                  {dbError}
-                </p>
-              )}
-            </div>
-            <p className="mt-8 text-xs text-slate-400 max-w-sm text-center">
-              Recuerda añadir la nueva configuración de tu proyecto en el código (variable firebaseConfig).
-            </p>
-          </div>
-        );
-      }
-
       useEffect(() => {
         if (!user) return; 
         
@@ -629,6 +590,45 @@
 
         return result;
       }, [items, searchQuery, activeCategory, categorySettings]);
+
+      if (isAuthLoading) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+            <Icon name="loader-2" className="w-10 h-10 text-indigo-600 animate-spin" />
+          </div>
+        );
+      }
+
+      if (!user) {
+        return (
+          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center border border-slate-200 dark:border-slate-700">
+              <div className="w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-6">
+                <Icon name="book-open" className="text-white w-8 h-8" />
+              </div>
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Mastermind</h1>
+              <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm">Tu segundo cerebro. Guarda tus procesos para no olvidarlos jamás.</p>
+              
+              <button 
+                onClick={handleGoogleSignIn}
+                className="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-semibold py-3 px-4 rounded-xl transition shadow-sm"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                Entrar con Google
+              </button>
+              
+              {dbError && (
+                <p className="mt-4 text-sm text-red-500 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg border border-red-200 dark:border-red-800 text-left">
+                  {dbError}
+                </p>
+              )}
+            </div>
+            <p className="mt-8 text-xs text-slate-400 max-w-sm text-center">
+              Recuerda añadir la nueva configuración de tu proyecto en el código (variable firebaseConfig).
+            </p>
+          </div>
+        );
+      }
 
       const handleSaveNewCategory = async () => {
         if (newCategoryName.trim() && user) {
